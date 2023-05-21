@@ -24,27 +24,28 @@ def read_file():
 
 def read_name_file():
     list_files = []
-    name_file = 1
-    matching_names = []
     for x in os.listdir():
         if x.endswith(".a"):
-            # Prints only text file present in My Folder
-            list_files.append(x)
+            list_files.append(int(x.split('.a')[0].split('_')[-1]))
 
-    for one_file in list_files:
-        matching_names.append(one_file.split('.a')[0].split('_')[-1])
-        if len(list_files) is None:
-            pass
-        else:
-            name_file = int(max(matching_names)) + 1
-
-    if len(list_files) >= 2:
-        os.remove(f'found_vacancies_{int(min(matching_names))}.a')
-
-
-    print(name_file)
+    if len(list_files) == 0:
+        name_file = 1
+    else:
+        name_file = max(list_files) + 1
 
     return name_file
+
+
+def del_old_file():
+    list_files = []
+    for x in os.listdir():
+        if x.endswith(".a"):
+            list_files.append(int(x.split('.a')[0].split('_')[-1]))
+
+    if len(list_files) >= 2:
+        os.remove(f"found_vacancies_{min(list_files)}.a")
+    else:
+        pass
 
 
 def scrap_hh(set_search, name_file):
@@ -91,11 +92,16 @@ def scrap_hh(set_search, name_file):
 
 
 def startup():
-
     nemeson = read_name_file()
 
     for one_search_terms in read_file():
         scrap_hh(one_search_terms, nemeson)
 
+
+
+    del_old_file()
+
     # read_name_file()
 
+
+startup()
