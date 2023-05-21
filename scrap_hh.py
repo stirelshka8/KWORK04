@@ -48,6 +48,27 @@ def del_old_file():
         pass
 
 
+def repetition_check():
+    list_files = []
+    old_list = []
+    new_list = []
+    for x in os.listdir():
+        if x.endswith(".a"):
+            list_files.append(int(x.split('.a')[0].split('_')[-1]))
+    print(list_files)
+    if len(list_files) >= 2:
+
+        with open(f"found_vacancies_{list_files[1]}.a") as old_file:
+            for old_line in old_file.readlines():
+                old_list.append(old_line)
+
+        with open(f"found_vacancies_{list_files[0]}.a") as new_file:
+            for new_line in new_file.readlines():
+                new_list.append(new_line)
+
+        return list(set(new_list) - set(old_list))
+
+
 def scrap_hh(set_search, name_file):
     counter = 0
 
@@ -92,16 +113,14 @@ def scrap_hh(set_search, name_file):
 
 
 def startup():
-    nemeson = read_name_file()
-
-    for one_search_terms in read_file():
-        scrap_hh(one_search_terms, nemeson)
-
-
-
-    del_old_file()
-
-    # read_name_file()
+    # nemeson = read_name_file()
+    #
+    # for one_search_terms in read_file():
+    #     scrap_hh(one_search_terms, nemeson)
+    #
+    print(repetition_check())
+    #
+    # del_old_file()
 
 
 startup()
