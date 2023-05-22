@@ -2,12 +2,36 @@ from bs4 import BeautifulSoup as bs
 from random import choice
 import configparser
 import requests
+import time
 import os
 
 config = configparser.ConfigParser()
 config.read('configuration.cfg')
 
-def preparation_for_shipping():
+
+def message_generation_and_sending():
+    list_files = []
+    for x in os.listdir():
+        if x.endswith(".a"):
+            list_files.append(x)
+
+    if int(len(list_files)) == 1:
+        with open(list_files[0], 'r') as file:
+            for line in file.readlines():
+                print(line.split(' >>>> '))
+                message_telegram = f"Вакансия - {line.split(' >>>> ')[0]}\n" \
+                                   f"Зарплата - {line.split(' >>>> ')[1]}\n" \
+                                   f"Ссылка - {line.split(' >>>> ')[2]}\n"
+                send_telegram(message_telegram)
+                time.sleep(3)
+    else:
+        vacancy_list = repetition_check()
+        for line in vacancy_list[0]:
+            message_telegram = f"Вакансия - {line.split(' >>>> ')[0]}\n" \
+                               f"Зарплата - {line.split(' >>>> ')[1]}\n" \
+                               f"Ссылка - {line.split(' >>>> ')[2]}\n"
+            send_telegram(message_telegram)
+            time.sleep(3)
 
 
 
@@ -72,6 +96,7 @@ def repetition_check():
     list_files = []
     old_list = []
     new_list = []
+    finish_list = []
     for x in os.listdir():
         if x.endswith(".a"):
             list_files.append(int(x.split('.a')[0].split('_')[-1]))
@@ -86,7 +111,8 @@ def repetition_check():
             for new_line in new_file.readlines():
                 new_list.append(new_line)
 
-        return list(set(new_list) - set(old_list))
+        finish_list.append(list(set(new_list) - set(old_list)))
+        return finish_list
 
 
 def scrap_hh(set_search, name_file):
@@ -133,14 +159,16 @@ def scrap_hh(set_search, name_file):
 
 
 def startup():
-    # nemeson = read_name_file()
-    #
-    # for one_search_terms in read_file():
-    #     scrap_hh(one_search_terms, nemeson)
-    #
-    send_telegram('1111111')
-    #
-    # del_old_file()
+    nemeson = read_name_file()
+
+    for one_search_terms in read_file():
+        scrap_hh(one_search_terms, nemeson)
+
+    time.sleep(1)
+    del_old_file()
+    time.sleep(1)
+    message_generation_and_sending()
 
 
-startup()
+if __name__ == '__main__':
+    startup()
