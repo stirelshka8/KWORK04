@@ -6,7 +6,7 @@ import time
 import os
 
 config = configparser.ConfigParser()
-config.read('configuration.cfg')
+config.read('config.cfg')
 
 
 def message_generation_and_sending():
