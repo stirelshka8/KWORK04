@@ -1,7 +1,27 @@
 from bs4 import BeautifulSoup as bs
 from random import choice
+import configparser
 import requests
 import os
+
+config = configparser.ConfigParser()
+config.read('configuration.cfg')
+
+def preparation_for_shipping():
+
+
+
+def send_telegram(text: str):
+    token = config.get("SET", "token")  # TEST
+    url = "https://api.telegram.org/bot"
+    channel_id = config.get("SET", "channel")
+    url += token
+    method = url + "/sendMessage"
+
+    r = requests.post(method, data={"chat_id": channel_id, "text": text})
+
+    if r.status_code != 200:
+        raise ConnectionError(f"Ошибка отправки сообщения! Статус код - {r.status_code}")
 
 
 def getting_user_agents():
@@ -118,7 +138,7 @@ def startup():
     # for one_search_terms in read_file():
     #     scrap_hh(one_search_terms, nemeson)
     #
-    print(repetition_check())
+    send_telegram('1111111')
     #
     # del_old_file()
 
