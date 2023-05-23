@@ -16,7 +16,7 @@ def message_generation_and_sending():
             list_files.append(x)
 
     if int(len(list_files)) == 1:
-        with open(list_files[0], 'r') as file:
+        with open(list_files[0], 'r', encoding='utf-8') as file:
             for line in file.readlines():
                 print(line.split(' >>>> '))
                 message_telegram = f"Вакансия - {line.split(' >>>> ')[0]}\n" \
@@ -32,7 +32,6 @@ def message_generation_and_sending():
                                f"Ссылка - {line.split(' >>>> ')[2]}\n"
             send_telegram(message_telegram)
             time.sleep(3)
-
 
 
 def send_telegram(text: str):
@@ -58,10 +57,11 @@ def getting_user_agents():
 
 
 def read_file():
-    search_terms = []
-    with open('search_terms.txt', 'r') as file:
-        for line in file.readlines():
-            search_terms.append(line.replace('\n', ''))
+    search_terms = ['Маслозавод', 'Маслоэкстракционный завод', 'Мэз', 'растительное масло', 'Рафинация', 'Подсолнечное '
+                                                                                                         'масло',
+                    'рапсовое масло', 'Соевое масло', 'Продажа подсолнечного масла', 'Продажа рапсового масла',
+                    'Продажа соевого масла', '«Юг Руси»', '«Эфко»', '«Невиномысский мэз»', '«Ресурс, Гап»',
+                    '«Астон»', '«Содружество»', '«Казанский маслоэкстракционный завод»']
 
     return search_terms
 
@@ -127,7 +127,8 @@ def scrap_hh(set_search, name_file):
     url_hh = preffix_url + suffix_url
     request = session.get(url_hh, headers=getting_user_agents())
     if request.status_code == 200:
-        soup = bs(request.content, 'lxml')
+        soup = bs(request.content, 'html.parser')
+
         try:
             pagination = soup.find_all('a', attrs={'data-qa': 'pager-page'})
             count_pages = int(pagination[-1].text)
@@ -135,11 +136,11 @@ def scrap_hh(set_search, name_file):
                 url = preffix_url + f'&page={i}'
                 if url not in pag_urls:
                     pag_urls.append(url)
-        except:
-            pass
+        except Exception as e:
+            print(e)
     for one_pag_urls in pag_urls:
         request = session.get(one_pag_urls, headers=getting_user_agents())  # ответ от сервера
-        soup = bs(request.content, 'lxml')
+        soup = bs(request.content, 'html.parser')
         divs = soup.find_all('div', class_="serp-item")
 
         for div in divs:
@@ -147,7 +148,7 @@ def scrap_hh(set_search, name_file):
                 title = div.find('a', class_="serp-item__title")
                 salary = div.find('span', class_="bloko-header-section-3")
 
-                with open(f"found_vacancies_{name_file}.a", "a") as f:
+                with open(f"found_vacancies_{name_file}.a", "a", encoding='utf-8') as f:
                     f.write(f'{title.text} >>>> {salary.text} >>>> {title["href"]}\n')
                 counter += 1
 
