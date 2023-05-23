@@ -56,7 +56,7 @@ def getting_user_agents():
     return {'User-Agent': choice(user_agents)}
 
 
-def read_file():
+def export_search_terms():
     search_terms = ['Маслозавод', 'Маслоэкстракционный завод', 'Мэз', 'растительное масло', 'Рафинация', 'Подсолнечное '
                                                                                                          'масло',
                     'рапсовое масло', 'Соевое масло', 'Продажа подсолнечного масла', 'Продажа рапсового масла',
@@ -162,7 +162,7 @@ def scrap_hh(set_search, name_file):
 def startup():
     nemeson = read_name_file()
 
-    for one_search_terms in read_file():
+    for one_search_terms in export_search_terms():
         scrap_hh(one_search_terms, nemeson)
 
     time.sleep(1)
