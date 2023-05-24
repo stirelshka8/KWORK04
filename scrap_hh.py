@@ -1,9 +1,12 @@
+# -*- coding: utf-8 -*-
+
 from bs4 import BeautifulSoup as bs
 from random import choice
 import configparser
 import requests
 import time
 import os
+
 
 config = configparser.ConfigParser()
 config.read('config.cfg')
@@ -20,28 +23,32 @@ def message_generation_and_sending():
             for line in file.readlines():
                 print(line.split(' >>>> '))
                 message_telegram = f"Вакансия - {line.split(' >>>> ')[0]}\n" \
-                                   f"Зарплата - {line.split(' >>>> ')[1]}\n" \
-                                   f"Ссылка - {line.split(' >>>> ')[2]}\n"
+                                   f"Зарплата - {line.split(' >>>> ')[1]}\n\n" \
+                                   f"[ПОДРОБНЕЕ]({line.split(' >>>> ')[2]})"
                 send_telegram(message_telegram)
                 time.sleep(3)
     else:
         vacancy_list = repetition_check()
-        for line in vacancy_list[0]:
-            message_telegram = f"Вакансия - {line.split(' >>>> ')[0]}\n" \
-                               f"Зарплата - {line.split(' >>>> ')[1]}\n" \
-                               f"Ссылка - {line.split(' >>>> ')[2]}\n"
-            send_telegram(message_telegram)
-            time.sleep(3)
+        try:
+            for line in vacancy_list[0]:
+                format_url = line.split(' >>>> ')[2].split('\n')[0]
+                message_telegram = f"Вакансия - {line.split(' >>>> ')[0]}\n" \
+                                   f"Зарплата - {line.split(' >>>> ')[1]}\n\n" \
+                                   f"[ПОДРОБНЕЕ]({line.split(' >>>> ')[2]})"
+                send_telegram(message_telegram)
+                time.sleep(3)
+        except TypeError:
+            print('Вакансии не найдены!')
 
 
 def send_telegram(text: str):
-    token = config.get("SET", "token")  # TEST
+    token = config.get("SET", "token")
     url = "https://api.telegram.org/bot"
     channel_id = config.get("SET", "channel")
-    url += token
-    method = url + "/sendMessage"
+    method = url + token + "/sendMessage" + f"?text={text}&chat_id={channel_id}&parse_mode=markdown"
+    print(method)
+    r = requests.post(method)
 
-    r = requests.post(method, data={"chat_id": channel_id, "text": text})
 
     if r.status_code != 200:
         raise ConnectionError(f"Ошибка отправки сообщения! Статус код - {r.status_code}")
@@ -57,13 +64,12 @@ def getting_user_agents():
 
 
 def export_search_terms():
-    search_terms = ['Маслозавод', 'Маслоэкстракционный завод', 'Мэз', 'растительное масло', 'Рафинация', 'Подсолнечное '
-                                                                                                         'масло',
-                    'рапсовое масло', 'Соевое масло', 'Продажа подсолнечного масла', 'Продажа рапсового масла',
-                    'Продажа соевого масла', '«Юг Руси»', '«Эфко»', '«Невиномысский мэз»', '«Ресурс, Гап»',
-                    '«Астон»', '«Содружество»', '«Казанский маслоэкстракционный завод»']
+    terms = []
+    with open('terms.txt', 'r', encoding='UTF-8') as file:
+        for line in file.readlines():
+            terms.append(line.replace('\n', ''))
 
-    return search_terms
+    return terms
 
 
 def read_name_file():
@@ -97,17 +103,18 @@ def repetition_check():
     old_list = []
     new_list = []
     finish_list = []
+
     for x in os.listdir():
         if x.endswith(".a"):
             list_files.append(int(x.split('.a')[0].split('_')[-1]))
-    print(list_files)
+
     if len(list_files) >= 2:
 
-        with open(f"found_vacancies_{list_files[1]}.a") as old_file:
+        with open(f"found_vacancies_{list_files[1]}.a", encoding='UTF-8') as old_file:
             for old_line in old_file.readlines():
                 old_list.append(old_line)
 
-        with open(f"found_vacancies_{list_files[0]}.a") as new_file:
+        with open(f"found_vacancies_{list_files[0]}.a", encoding='UTF-8') as new_file:
             for new_line in new_file.readlines():
                 new_list.append(new_line)
 
@@ -173,3 +180,4 @@ def startup():
 
 if __name__ == '__main__':
     startup()
+    # message_generation_and_sending()
