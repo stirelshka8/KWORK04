@@ -184,5 +184,4 @@ def startup():
 
 
 if __name__ == '__main__':
-    # startup()
-    message_generation_and_sending()
+    startup()
