@@ -7,12 +7,14 @@ import requests
 import time
 import os
 
-
 config = configparser.ConfigParser()
 config.read('config.cfg')
 
+message_counter = []
+
 
 def message_generation_and_sending():
+    print(f'\n[INFO] Отправка сообщений в канал\n')
     list_files = []
     for x in os.listdir():
         if x.endswith(".a"):
@@ -21,37 +23,39 @@ def message_generation_and_sending():
     if int(len(list_files)) == 1:
         with open(list_files[0], 'r', encoding='utf-8') as file:
             for line in file.readlines():
-                print(line.split(' >>>> '))
-                message_telegram = f"Вакансия - {line.split(' >>>> ')[0]}\n" \
-                                   f"Зарплата - {line.split(' >>>> ')[1]}\n\n" \
-                                   f"[ПОДРОБНЕЕ]({line.split(' >>>> ')[2]})"
+                message_telegram = f"🔖 {line.split(' >>>> ')[0]}\n" \
+                                   f"💵 {line.split(' >>>> ')[1]}\n\n" \
+                                   f"🔎 [ПОДРОБНЕЕ]({line.split(' >>>> ')[2]})"
                 send_telegram(message_telegram)
                 time.sleep(3)
     else:
         vacancy_list = repetition_check()
-        try:
-            for line in vacancy_list[0]:
-                format_url = line.split(' >>>> ')[2].split('\n')[0]
-                message_telegram = f"Вакансия - {line.split(' >>>> ')[0]}\n" \
-                                   f"Зарплата - {line.split(' >>>> ')[1]}\n\n" \
-                                   f"[ПОДРОБНЕЕ]({line.split(' >>>> ')[2]})"
-                send_telegram(message_telegram)
-                time.sleep(3)
-        except TypeError:
-            print('Вакансии не найдены!')
+        if vacancy_list != [[]]:
+            try:
+                for line in vacancy_list[0]:
+                    message_telegram = f"🔖 {line.split(' >>>> ')[0]}\n" \
+                                       f"💵 {line.split(' >>>> ')[1]}\n\n" \
+                                       f"🔎 [ПОДРОБНЕЕ]({line.split(' >>>> ')[2]})"
+                    send_telegram(message_telegram)
+                    time.sleep(3)
+            except TypeError:
+                print('[INFO] Вакансии не найдены!')
+        else:
+            print("[INFO] Новых вакансий не найдено")
 
 
 def send_telegram(text: str):
+    message_counter.append(text)
     token = config.get("SET", "token")
     url = "https://api.telegram.org/bot"
     channel_id = config.get("SET", "channel")
     method = url + token + "/sendMessage" + f"?text={text}&chat_id={channel_id}&parse_mode=markdown"
-    print(method)
+    print(f"[INFO] Количество отправленных сообщений за сессию {len(message_counter)}")
     r = requests.post(method)
 
 
     if r.status_code != 200:
-        raise ConnectionError(f"Ошибка отправки сообщения! Статус код - {r.status_code}")
+        raise ConnectionError(f"[ERRO] Ошибка отправки сообщения! Статус код - {r.status_code}")
 
 
 def getting_user_agents():
@@ -133,6 +137,7 @@ def scrap_hh(set_search, name_file):
     suffix_url = f'&page={start_page}'
     url_hh = preffix_url + suffix_url
     request = session.get(url_hh, headers=getting_user_agents())
+    print(f"[SEARCH] Поисковая фраза -> {set_search}")
     if request.status_code == 200:
         soup = bs(request.content, 'html.parser')
 
@@ -144,7 +149,7 @@ def scrap_hh(set_search, name_file):
                 if url not in pag_urls:
                     pag_urls.append(url)
         except Exception as e:
-            print(e)
+            print("[SEARCH] Вакансии по данному запросу не найдены")
     for one_pag_urls in pag_urls:
         request = session.get(one_pag_urls, headers=getting_user_agents())  # ответ от сервера
         soup = bs(request.content, 'html.parser')
@@ -162,8 +167,8 @@ def scrap_hh(set_search, name_file):
             except AttributeError:
                 pass
 
-    print(counter)
-    print(set_search)
+    print(f"[SEARCH] Количество найденных вакансий -> {counter}")
+    print("===========================")
 
 
 def startup():
@@ -179,5 +184,5 @@ def startup():
 
 
 if __name__ == '__main__':
-    startup()
-    # message_generation_and_sending()
+    # startup()
+    message_generation_and_sending()

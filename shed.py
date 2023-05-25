@@ -10,7 +10,8 @@ def run_send_bot():
         pass
 
 
-schedule.every(1800).seconds.do(run_send_bot)
-while True:
-    schedule.run_pending()
-    time.sleep(1)
+def start_shed(time_run):
+    schedule.every(time_run).seconds.do(run_send_bot)
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
